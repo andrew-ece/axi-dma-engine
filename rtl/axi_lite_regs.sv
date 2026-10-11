@@ -12,7 +12,7 @@ module axi_lite_regs #(
     input  logic                  s_axi_arvalid,
     output logic                  s_axi_arready,
 
-    input  logic [ADDR_WIDTH-1:0] s_axi_awaddr, // Where to write data to
+    input  logic [ADDR_WIDTH-1:0] s_axi_awaddr, // Address of AXI-Lite register to write to
     input  logic                  s_axi_awvalid,
     output logic                  s_axi_awready,
 
@@ -60,9 +60,9 @@ module axi_lite_regs #(
   logic write;
   assign write = awaddr_received && wdata_received && !s_axi_bvalid;
   
-  // CHANGE TO ACCOUNT FOR WRITE RESPONSE SIGNAL
-  assign s_axi_awready = !awaddr_received;
-  assign s_axi_wready = !wdata_received;
+  
+  assign s_axi_awready = !awaddr_received && !s_axi_bvalid;
+  assign s_axi_wready = !wdata_received && !s_axi_bvalid;
 
   // write address channel
   always_ff @(posedge clk) begin
@@ -70,12 +70,15 @@ module axi_lite_regs #(
       awaddr_reg <= '0;
       awaddr_received <= 1'b0;
     end
-    else if (write) begin
-      awaddr_received <= 1'b0; // received flag is reset after writing
-    end
-    else if (s_axi_awvalid && s_axi_awready) begin
+    else begin
+      if (write) begin
+        awaddr_received <= 1'b0; // received flag is reset after writing
+      end
+      
+      if (s_axi_awvalid && s_axi_awready) begin
         awaddr_reg <= s_axi_awaddr;
         awaddr_received <= 1'b1;
+      end
     end
   end
 
@@ -86,13 +89,16 @@ module axi_lite_regs #(
       wstrb_reg <= '0;
       wdata_received <= 1'b0;
     end 
-    else if (write) begin
-      wdata_received <= 1'b0; // received flag is reset after writing
-    end
-    else if (s_axi_wvalid && s_axi_wready) begin
+    else begin
+      if (write) begin
+        wdata_received <= 1'b0; // received flag is reset after writing
+      end
+      
+      if (s_axi_wvalid && s_axi_wready) begin
         wdata_reg <= s_axi_wdata;
         wstrb_reg <=s_axi_wstrb;
         wdata_received <= 1'b1;
+      end
     end
   end
 
@@ -103,7 +109,7 @@ module axi_lite_regs #(
       s_axi_bresp <= 2'b00;
     end
     else begin
-      if (s_axi_bready && s_axi_bvalid) begin // Reset valid reg after handshake
+      if (s_axi_bready && s_axi_bvalid) begin // After successful handshake, reset bvalid
         s_axi_bvalid <= 1'b0;
       end
 
@@ -137,18 +143,9 @@ module axi_lite_regs #(
         dst_addr_reg <= wdata_reg;
 
       end
-      end
     end
-
-
-
-
-
-
-  
-
-
-
   end
+
+
 
 endmodule
