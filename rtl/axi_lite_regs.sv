@@ -82,6 +82,9 @@ module axi_lite_regs #(
     end
   end
 
+  localparam logic [1:0] OKAY = 2'b00;
+  localparam logic [1:0] SLVERR = 2'b10;
+
   // write data channel
   always_ff @(posedge clk) begin
     if (!aresetn) begin
@@ -115,6 +118,15 @@ module axi_lite_regs #(
 
       if (write) begin
         s_axi_bvalid <= 1'b1;
+        case (awaddr_reg)
+          REG_DMA_CTRL, REG_DST_ADDR, REG_SRC_ADDR, REG_LENGTH: begin
+            s_axi_bresp <= OKAY;
+          end
+
+          default: begin
+            s_axi_bresp <= SLVERR; // Invalid address
+          end
+        endcase
         s_axi_bresp <= 2'b00; // OKAY
       end
     end
