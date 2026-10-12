@@ -42,7 +42,7 @@ module axi_lite_regs #(
 
   // Control registers
   logic [DATA_WIDTH-1:0] control_reg;
-  logic [DATA_WIDTH-1:0] status_reg;
+  logic [DATA_WIDTH-1:0] status_reg; // read-only
   logic [ADDR_WIDTH-1:0] src_addr_reg;
   logic [ADDR_WIDTH-1:0] dst_addr_reg;
   logic [DATA_WIDTH-1:0] length_reg;
@@ -130,20 +130,42 @@ module axi_lite_regs #(
       length_reg <= '0;
     end
     else if (write) begin
-      if (awaddr_reg == REG_SRC_ADDR) begin
-        for (int i = 0; i < 4; i++) begin
+      case (awaddr_reg)
+        REG_DMA_CTRL: begin
+          for (int i = 0; i < 4; i++) begin
+          if (wstrb_reg[i]) begin
+            control_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
+          end
+          end
+        end
+
+        REG_SRC_ADDR: begin
+          for (int i = 0; i < 4; i++) begin
           if (wstrb_reg[i]) begin
             src_addr_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
           end
+          end
         end
-      end
-      else if (awaddr_reg == REG_DST_ADDR) begin
-        for (int i = 0; i < 4; i++) begin
+
+        REG_DST_ADDR: begin
+          for (int i = 0; i < 4; i++) begin
           if (wstrb_reg[i]) begin
             dst_addr_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
           end
+          end
         end
-      end
+
+        REG_LENGTH: begin
+          for (int i = 0; i < 4; i++) begin
+          if (wstrb_reg[i]) begin
+            length_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
+          end
+          end
+        end
+
+        default: begin
+        end
+      endcase
     end
   end
 
