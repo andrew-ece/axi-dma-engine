@@ -1,0 +1,6 @@
+# RTL and verification files
+*.sv text eol=lf
+*.v  text eol=lf
+
+# ModelSim scripts
+*.do text eol=lf
