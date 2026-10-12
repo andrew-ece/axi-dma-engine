@@ -116,13 +116,8 @@ module axi_lite_regs #(
       if (write) begin
         s_axi_bvalid <= 1'b1;
         s_axi_bresp <= 2'b00; // OKAY
-
       end
     end
-
-
-
-
   end
 
   // Update control registers
@@ -136,12 +131,18 @@ module axi_lite_regs #(
     end
     else if (write) begin
       if (awaddr_reg == REG_SRC_ADDR) begin
-        src_addr_reg <= wdata_reg;
-
+        for (int i = 0; i < 4; i++) begin
+          if (wstrb_reg[i]) begin
+            src_addr_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
+          end
+        end
       end
       else if (awaddr_reg == REG_DST_ADDR) begin
-        dst_addr_reg <= wdata_reg;
-
+        for (int i = 0; i < 4; i++) begin
+          if (wstrb_reg[i]) begin
+            dst_addr_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
+          end
+        end
       end
     end
   end
