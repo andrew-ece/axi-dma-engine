@@ -128,7 +128,7 @@ module tb_axi_lite_regs;
         $display("PASS: AW-before-W transaction");
 
         wdata   = 32'h01234567; // Different wdata
-        wstrb   = 4'b1111;
+        wstrb   = 4'b1000;
         wvalid  = 1;
 
         repeat (3) begin
@@ -136,7 +136,7 @@ module tb_axi_lite_regs;
             wvalid = 0;
             if (dut.wdata_received !== 1'b1)
                 $fatal(1, "FAIL: W was not captured/held");
-            if (dut.wdata_reg !== wdata)
+            if (dut.wdata_reg !== wdata) 
                 $fatal(1, "FAIL: Data was not correctly stored");
             if (dut.wstrb_reg !== wstrb)
                 $fatal(1, "FAIL: WSTRB was not correctly stored");
@@ -161,8 +161,8 @@ module tb_axi_lite_regs;
 
         @(negedge clk);
 
-        if (dut.src_addr_reg !== wdata)
-            $fatal(1, "FAIL: Incorrect SRC_ADDR value");
+        if (dut.src_addr_reg !== 32'h01345678) // need to account for wstrb
+            $fatal(1, "FAIL: Incorrect SRC_ADDR value/Was not WSTRB-controlled");
 
         if (bvalid !== 1'b1 || bresp !== 2'b00)
             $fatal(1, "FAIL: Incorrect write response");
