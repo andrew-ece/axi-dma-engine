@@ -179,6 +179,108 @@ module tb_axi_lite_regs;
             $fatal(1, "FAIL: AW/W not ready after second write");
         
         $display("PASS: W-before-AW transaction");
+        
+        // Test write to control_reg
+
+        awaddr = 32'h00000000; 
+        awvalid = 1;
+        wdata   = 32'h01234567; 
+        wstrb   = 4'b1111;
+        wvalid  = 1;
+        bready = 1;
+
+        @(negedge clk);
+        awvalid = 0;
+        wvalid = 0;
+
+        @(negedge clk);
+        if (dut.control_reg !== wdata) begin
+            $fatal(1, "FAIL: Data was not correctly stored in control_reg");
+        end
+
+        if (bresp !== 2'b00) begin
+            $fatal(1, "FAIL: BRESP was not correctly set");
+        end
+
+        if (bvalid !== 1) begin
+            $fatal(1, "FAIL, BVALID was not set");
+        end
+
+        // Test write to length_reg
+        @(negedge clk);
+        awaddr = 32'h00000010; 
+        awvalid = 1;
+        wdata   = 32'hAABB1234; 
+        wstrb   = 4'b0011;
+        wvalid  = 1;
+        bready = 1;
+
+        @(negedge clk);
+        awvalid = 0;
+        wvalid = 0;
+
+        @(negedge clk);
+        if (dut.length_reg !== 32'h00001234) begin
+            $fatal(1, "FAIL: Data was not correctly stored in length_reg");
+        end
+
+        if (bresp !== 2'b00) begin
+            $fatal(1, "FAIL: BRESP was not correctly set");
+        end
+
+        if (bvalid !== 1) begin
+            $fatal(1, "FAIL, BVALID was not set");
+        end
+
+        // Test write to status_reg
+        @(negedge clk);
+        awaddr = 32'h00000004; 
+        awvalid = 1;
+        wdata   = 32'h01234567; 
+        wstrb   = 4'b1111;
+        wvalid  = 1;
+        bready = 1;
+
+        @(negedge clk);
+        awvalid = 0;
+        wvalid = 0;
+
+        @(negedge clk);
+        if (dut.status_reg !== '0) begin
+            $fatal(1, "FAIL: status_reg should not be written to");
+        end
+
+        if (bresp !== 2'b10) begin
+            $fatal(1, "FAIL: BRESP was not correctly set");
+        end
+
+        if (bvalid !== 1) begin
+            $fatal(1, "FAIL, BVALID was not set");
+        end
+
+        // Test write to invalid address 
+        @(negedge clk);
+        awaddr = 32'h0000001C; 
+        awvalid = 1;
+        wdata   = 32'h00000000; 
+        wstrb   = 4'b0000;
+        wvalid  = 1;
+        bready = 1;
+
+        @(negedge clk);
+        awvalid = 0;
+        wvalid = 0;
+
+        @(negedge clk);
+        if (bresp !== 2'b10) begin
+            $fatal(1, "FAIL: BRESP was not correctly set");
+        end
+
+        if (bvalid !== 1) begin
+            $fatal(1, "FAIL, BVALID was not set");
+        end
+        $display("PASS: All write tests to DMA registers");
+
         $finish;
     end
 

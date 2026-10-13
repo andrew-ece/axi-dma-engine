@@ -127,7 +127,6 @@ module axi_lite_regs #(
             s_axi_bresp <= SLVERR; // Invalid address
           end
         endcase
-        s_axi_bresp <= 2'b00; // OKAY
       end
     end
   end
