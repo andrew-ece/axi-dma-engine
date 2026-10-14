@@ -24,8 +24,8 @@ The DMA data-transfer engine is not yet implemented.
 
 - Concurrent operations: Supports simultaneous read and write transactions.
 
-DMA register address offset
-| Offset | Register | Access |
+### DMA register address offset
+| Address Offset | Register | Access |
 | -------- | -------- | -------- |
 | 0x00 | DMA_CTRL | Read/Write |
 | 0x04 | DMA_STATUS | Read-only |
@@ -82,5 +82,3 @@ The testbench checks transaction behavior, internal register updates, response v
 - Constrained-random and UVM verification
 
 - End-to-end DMA transfer testing
-
-Project goal: Develop a complete, verified AXI DMA engine capable of memory-to-memory transfers.
