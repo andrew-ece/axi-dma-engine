@@ -66,13 +66,17 @@ Requirements: ModelSim/QuestaSim with SystemVerilog support.
 Run the following commands from the repository root.
 1. Create the simulation library and compile the RTL and testbench
 
-
+```
 vlib work
 
 vlog -sv rtl/axi_lite_regs.sv tb/*.sv
+```
 
 2. Run the directed tests
+
+```
 vsim -c work.tb_axi_lite_regs -do "run -all; quit -f"
+```
 
 ## Tools and Technologies 
 - SystemVerilog — RTL design and testbench development
