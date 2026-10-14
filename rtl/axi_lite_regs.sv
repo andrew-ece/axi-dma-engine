@@ -8,7 +8,7 @@ module axi_lite_regs #(
     input logic aresetn,
     
     // AXI4-Lite subordinate control interface
-    input  logic [ADDR_WIDTH-1:0] s_axi_araddr, // Where to read data from
+    input  logic [ADDR_WIDTH-1:0] s_axi_araddr, // Address of AXI-Lite register to read from
     input  logic                  s_axi_arvalid,
     output logic                  s_axi_arready,
 
@@ -21,7 +21,7 @@ module axi_lite_regs #(
     output logic                  s_axi_rvalid,
     input  logic                  s_axi_rready,
 
-    input  logic [DATA_WIDTH-1:0]       s_axi_wdata,  
+    input  logic [DATA_WIDTH-1:0]       s_axi_wdata,  // Data to write into a AXI-Lite register
     input  logic [(DATA_WIDTH/8) - 1:0] s_axi_wstrb,
     input  logic                        s_axi_wvalid,
     output logic                        s_axi_wready,
@@ -64,7 +64,7 @@ module axi_lite_regs #(
   assign s_axi_awready = !awaddr_received && !s_axi_bvalid;
   assign s_axi_wready = !wdata_received && !s_axi_bvalid;
 
-  // write address channel
+  // Write address channel
   always_ff @(posedge clk) begin
     if (!aresetn) begin // Reset is active low
       awaddr_reg <= '0;
@@ -85,7 +85,7 @@ module axi_lite_regs #(
   localparam logic [1:0] OKAY = 2'b00;
   localparam logic [1:0] SLVERR = 2'b10;
 
-  // write data channel
+  // Write data channel
   always_ff @(posedge clk) begin
     if (!aresetn) begin
       wdata_reg <= '0;
@@ -105,7 +105,7 @@ module axi_lite_regs #(
     end
   end
 
-  // write response channel
+  // Write response channel
   always_ff @(posedge clk) begin
     if (!aresetn) begin
       s_axi_bvalid <= 1'b0;
@@ -180,6 +180,53 @@ module axi_lite_regs #(
     end
   end
 
+// Read address channel
+assign s_axi_arready = aresetn && !s_axi_rvalid;
 
+// Read response channel 
+always_ff @(posedge clk) begin
+  if (!aresetn) begin
+    s_axi_rvalid <= 1'b0;
+    s_axi_rdata <= '0;
+    s_axi_rresp <= OKAY;
+  end
+  else if (s_axi_arready && s_axi_arvalid) begin
+    s_axi_rvalid <= 1;
+    case (s_axi_araddr)
+      REG_DMA_CTRL: begin
+        s_axi_rdata <= control_reg;
+        s_axi_rresp <= OKAY;
+      end
+
+      REG_DMA_STATUS: begin
+        s_axi_rdata <= status_reg;
+        s_axi_rresp <= OKAY;
+      end
+
+      REG_SRC_ADDR: begin
+        s_axi_rdata <= src_addr_reg;
+        s_axi_rresp <= OKAY;
+      end
+
+      REG_DST_ADDR: begin
+        s_axi_rdata <= dst_addr_reg;
+        s_axi_rresp <= OKAY;
+      end
+
+      REG_LENGTH: begin
+        s_axi_rdata <= length_reg;
+        s_axi_rresp <= OKAY;
+      end
+
+      default: begin
+        s_axi_rdata <= '0;
+        s_axi_rresp <= SLVERR;
+      end
+    endcase
+  end
+  else if (s_axi_rvalid && s_axi_rready) begin // R channel handshake occurs fastest 1 clk cycle later
+    s_axi_rvalid <= 1'b0;
+  end
+end
 
 endmodule
