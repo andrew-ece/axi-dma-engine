@@ -5,7 +5,7 @@ An ongoing SystemVerilog project to design and verify an AXI-based Direct Memory
 ## Current Status
 ### AXI4-Lite Control Interface — Implemented and Tested
 
-Completed a 32-bit AXI4-Lite subordinate register interface (with 6 registers) for configuring and monitoring the planned DMA engine. The interface has passed self-checking directed simulations in ModelSim.
+Completed a 32-bit AXI4-Lite subordinate register interface (with 5 registers) for configuring and monitoring the planned DMA engine. The interface has passed self-checking directed simulations in ModelSim.
 
 The DMA data-transfer engine is not yet implemented.
 
