@@ -44,18 +44,17 @@ Result: All current directed tests passed
 
 ### Verified Scenarios
 
-| Test | Result |
-| -------- | -------- |
-| AW-before-W and W-before-AW transactions | PASS |
-| Write-address and write-data buffering | PASS |
-| Full and partial WSTRB-controlled writes | PASS |
-| Write-response backpressure | PASS |
-| CONTROL and LENGTH register writes | PASS |
-| Read-only STATUS register protection | PASS |
-| Invalid write-address error responses | PASS |
-| Register readback and read-response backpressure | PASS |
-| Invalid read-address error responses | PASS |
-| Concurrent read/write transactions | PASS |
+| Test | Verified Behaviour | Result |
+| -------- | -------- | -------- |
+| AW-before-W transaction | Independent write-address buffering and B-channel backpressure | PASS |
+| W-before-AW transaction | Independent write-data buffering and byte-level WSTRB write | PASS |
+| DMA_CTRL register write | Full 32-bit register update and OKAY write response | PASS |
+| LENGTH register write | Partial register update using WSTRB (0011) | PASS |
+| Read-only STATUS register write | Register remains unchanged, SLVERR returned | PASS |
+| Invalid-address write | SLVERR returned for unmapped write address | PASS |
+| Valid register read | Correct data and OKAY response were held under backpressure| PASS |
+| Invalid-address read | Zero read data and SLVERR response | PASS |
+| Concurrent read/write transactions | Register updated, old value was read with OKAY response | PASS |
 
 The testbench checks transaction behavior, internal register updates, response validity, response codes, and data stability under backpressure.
 
