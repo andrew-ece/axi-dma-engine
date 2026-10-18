@@ -1,4 +1,4 @@
-// Subordinate interface (DMA acts as subordinate)
+// AXI4-Lite subordinate interface for DMA control and status registers
 module axi_lite_regs #(
     parameter ADDR_WIDTH = 32,
     parameter DATA_WIDTH = 32
@@ -8,32 +8,32 @@ module axi_lite_regs #(
     input logic aresetn,
     
     // AXI4-Lite subordinate control interface
-    input  logic [ADDR_WIDTH-1:0] s_axi_araddr, // Address of AXI-Lite register to read from
+    input  logic [ADDR_WIDTH-1:0] s_axi_araddr, /
     input  logic                  s_axi_arvalid,
     output logic                  s_axi_arready,
 
-    input  logic [ADDR_WIDTH-1:0] s_axi_awaddr, // Address of AXI-Lite register to write to
+    input  logic [ADDR_WIDTH-1:0] s_axi_awaddr, 
     input  logic                  s_axi_awvalid,
     output logic                  s_axi_awready,
 
     output logic [DATA_WIDTH-1:0] s_axi_rdata, 
-    output logic [           1:0] s_axi_rresp, // Read response
+    output logic [           1:0] s_axi_rresp, 
     output logic                  s_axi_rvalid,
     input  logic                  s_axi_rready,
 
-    input  logic [DATA_WIDTH-1:0]       s_axi_wdata,  // Data to write into a AXI-Lite register
+    input  logic [DATA_WIDTH-1:0]       s_axi_wdata,  
     input  logic [(DATA_WIDTH/8) - 1:0] s_axi_wstrb,
     input  logic                        s_axi_wvalid,
     output logic                        s_axi_wready,
 
-    output logic [1:0] s_axi_bresp, // Write response
+    output logic [1:0] s_axi_bresp, 
     input  logic       s_axi_bready,
     output logic       s_axi_bvalid
 
 );
 
 
-  // Set local byte offsets for control registers
+  // Memory-mapped register byte offsets
   localparam logic [ADDR_WIDTH-1:0] REG_DMA_CTRL   = 5'h00;  // Byte offset 0x00
   localparam logic [ADDR_WIDTH-1:0] REG_DMA_STATUS = 5'h04;
   localparam logic [ADDR_WIDTH-1:0] REG_SRC_ADDR = 5'h08;
@@ -47,16 +47,21 @@ module axi_lite_regs #(
   logic [ADDR_WIDTH-1:0] dst_addr_reg;
   logic [DATA_WIDTH-1:0] length_reg;
 
-  // Temporarily store address
+// Buffer AW and W independently because their handshakes
+// may occur in either order.
+
+  // Buffered write address
   logic [ADDR_WIDTH-1:0] awaddr_reg;
   logic                  awaddr_received;
 
-  // Temporarily store data
+  // Buffered write data and byte strobes
   logic [DATA_WIDTH-1:0]     wdata_reg;
   logic [(DATA_WIDTH/8)-1:0] wstrb_reg;
   logic                      wdata_received;
  
  
+  // Only permit one outstanding write transaction
+  // Block new requests while BVALID is 1 (pending response)
   logic write;
   assign write = awaddr_received && wdata_received && !s_axi_bvalid;
   
@@ -66,13 +71,13 @@ module axi_lite_regs #(
 
   // Write address channel
   always_ff @(posedge clk) begin
-    if (!aresetn) begin // Reset is active low
+    if (!aresetn) begin 
       awaddr_reg <= '0;
       awaddr_received <= 1'b0;
     end
     else begin
       if (write) begin
-        awaddr_received <= 1'b0; // received flag is reset after writing
+        awaddr_received <= 1'b0;
       end
       
       if (s_axi_awvalid && s_axi_awready) begin
@@ -94,7 +99,7 @@ module axi_lite_regs #(
     end 
     else begin
       if (write) begin
-        wdata_received <= 1'b0; // received flag is reset after writing
+        wdata_received <= 1'b0; 
       end
       
       if (s_axi_wvalid && s_axi_wready) begin
@@ -112,7 +117,7 @@ module axi_lite_regs #(
       s_axi_bresp <= 2'b00;
     end
     else begin
-      if (s_axi_bready && s_axi_bvalid) begin // After successful handshake, reset bvalid
+      if (s_axi_bready && s_axi_bvalid) begin // Complete the write response when accepted
         s_axi_bvalid <= 1'b0;
       end
 
@@ -124,7 +129,7 @@ module axi_lite_regs #(
           end
 
           default: begin
-            s_axi_bresp <= SLVERR; // Invalid address
+            s_axi_bresp <= SLVERR; 
           end
         endcase
       end
@@ -143,7 +148,7 @@ module axi_lite_regs #(
     else if (write) begin
       case (awaddr_reg)
         REG_DMA_CTRL: begin
-          for (int i = 0; i < 4; i++) begin
+          for (int i = 0; i < DATA_WIDTH/8; i++) begin
           if (wstrb_reg[i]) begin
             control_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
           end
@@ -151,7 +156,7 @@ module axi_lite_regs #(
         end
 
         REG_SRC_ADDR: begin
-          for (int i = 0; i < 4; i++) begin
+          for (int i = 0; i < DATA_WIDTH/8; i++) begin
           if (wstrb_reg[i]) begin
             src_addr_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
           end
@@ -159,7 +164,7 @@ module axi_lite_regs #(
         end
 
         REG_DST_ADDR: begin
-          for (int i = 0; i < 4; i++) begin
+          for (int i = 0; i < DATA_WIDTH/8; i++) begin
           if (wstrb_reg[i]) begin
             dst_addr_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
           end
@@ -167,7 +172,7 @@ module axi_lite_regs #(
         end
 
         REG_LENGTH: begin
-          for (int i = 0; i < 4; i++) begin
+          for (int i = 0; i < DATA_WIDTH/8; i++) begin
           if (wstrb_reg[i]) begin
             length_reg[8*i +: 8] <= wdata_reg[8*i +: 8];
           end
@@ -181,6 +186,7 @@ module axi_lite_regs #(
   end
 
 // Read address channel
+// Only premits one outstanding read transaction
 assign s_axi_arready = aresetn && !s_axi_rvalid;
 
 // Read response channel 
@@ -224,7 +230,7 @@ always_ff @(posedge clk) begin
       end
     endcase
   end
-  else if (s_axi_rvalid && s_axi_rready) begin // R channel handshake occurs fastest 1 clk cycle later
+  else if (s_axi_rvalid && s_axi_rready) begin 
     s_axi_rvalid <= 1'b0;
   end
 end

@@ -392,14 +392,9 @@ module tb_axi_lite_regs;
             $fatal(1, "FAIL: Simultaneous read reponse not accepted");
         
         $display("PASS: All read tests passed");
-        
-
-
-
+    
         $finish;
     end
-
-
 
 
     // Prevent a broken test from running forever
