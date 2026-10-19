@@ -7,6 +7,8 @@ An ongoing SystemVerilog project to design and verify an AXI-based Direct Memory
 
 Completed a 32-bit AXI4-Lite subordinate register interface (with 5 registers) for configuring and monitoring the planned DMA engine. The interface has passed self-checking directed simulations in ModelSim.
 
+This control interface has been synthesized in AMD Vivado targeting the Xilinx Artix-7 XC7A35T (xc7a35tcpg236-1), using 109 LUTs and 234 flip-flops. FPGA implementation and hardware validation have not been performed.
+
 The DMA data-transfer engine is not yet implemented.
 
 ## Implemented Features
@@ -24,7 +26,7 @@ The DMA data-transfer engine is not yet implemented.
 
 - Concurrent operations: Supports simultaneous read and write transactions.
 
-### AXI-Lite4 Register Map
+### AXI4-Lite Register Map
 | Address Offset | Register | Access |
 | -------- | -------- | -------- |
 | 0x00 | DMA_CTRL | Read/Write |
@@ -37,10 +39,10 @@ DMA_CTRL and DMA_STATUS currently provide register storage/readback behavior onl
 
 ## Verification Results
 
-Tool: Siemens ModelSim
-Language: SystemVerilog
-Method: Self-checking directed testbench using automated checks
-Result: All current directed tests passed
+- Tool: Siemens ModelSim
+- Language: SystemVerilog
+- Method: Self-checking directed testbench using automated checks
+- Result: All current directed tests passed
 
 ### Verified Scenarios
 
@@ -57,6 +59,8 @@ Result: All current directed tests passed
 | Concurrent read/write transactions | Register updated, old value was read with OKAY response | PASS |
 
 The testbench checks transaction behavior, internal register updates, response validity, response codes, and data stability under backpressure.
+
+Protocol assertions, constrained-random verification, and broader reset and transaction-timing coverage are planned.
 
 ### Running the Tests
 The AXI4-Lite control interface is verified using a self-checking SystemVerilog testbench in Siemens ModelSim.
