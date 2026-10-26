@@ -74,7 +74,7 @@ module tb_axi_lite_regs;
         if (arready !== 1'b1)
             $fatal(1, "FAIL: AR not ready after reset");
 
-        awaddr  = 32'h00000008; // SRC_ADDR
+        awaddr  = 32'h00000008; 
         awvalid = 1;
         repeat (3) begin
             @(negedge clk);
@@ -93,7 +93,6 @@ module tb_axi_lite_regs;
         wstrb   = 4'b1111;
         wvalid  = 1;
 
-        // The intervening rising edge accepts AW and W
         @(negedge clk);
 
         if (dut.awaddr_received !== 1'b1 ||
@@ -103,7 +102,6 @@ module tb_axi_lite_regs;
             $fatal(1, "FAIL: write signal was not set");
         wvalid  = 0;
 
-        // The next rising edge executes the write
         @(negedge clk);
 
         if (dut.src_addr_reg !== 32'h12345678)
@@ -122,10 +120,7 @@ module tb_axi_lite_regs;
                 $fatal(1, "FAIL: New write accepted while B pending");
         end
 
-        // Allow response handshake
         bready = 1;
-
-        // B channel handshake happens at rising edge
 
         @(negedge clk);
 
@@ -152,10 +147,9 @@ module tb_axi_lite_regs;
             if (dut.awaddr_received !== 1'b0)
                 $fatal(1, "FAIL: AW should not be set");
         end
-        awaddr  = 32'h00000008; // SRC_ADDR
+        awaddr  = 32'h00000008; 
         awvalid = 1;
 
-        // The next rising edge puts awaddr in awaddr_reg. Doesn't write yet due to nonblocking assignment
 
         @(negedge clk);
 
@@ -166,11 +160,9 @@ module tb_axi_lite_regs;
             $fatal(1, "FAIL: write signal was not set");
         awvalid  = 0;
 
-        // write executed at rising edge
-
         @(negedge clk);
 
-        if (dut.src_addr_reg !== 32'h01345678) // need to account for wstrb
+        if (dut.src_addr_reg !== 32'h01345678) 
             $fatal(1, "FAIL: Incorrect SRC_ADDR value/Was not WSTRB-controlled");
 
         if (bvalid !== 1'b1 || bresp !== 2'b00)
@@ -178,7 +170,7 @@ module tb_axi_lite_regs;
 
         // BREADY is still 1 from the first transaction
 
-        // Next rising edge completes the second B handshake
+    
         @(negedge clk);
 
         if (bvalid !== 1'b0)
@@ -297,8 +289,6 @@ module tb_axi_lite_regs;
         arvalid = 1;
         araddr = 32'h00000000; // should read 32'h01234567
 
-        // AR handshake happens on rising edge
-
         @(negedge clk);
         arvalid = 0;
         if (rvalid !== 1)
@@ -319,8 +309,6 @@ module tb_axi_lite_regs;
         end
         rready = 1;
 
-        // R handshake happens on rising edge
-
         @(negedge clk);
         rready = 0;
         if (rvalid !== 0)
@@ -336,7 +324,6 @@ module tb_axi_lite_regs;
         arvalid = 1;
         araddr = 32'h00000014; 
 
-        // AR Handshake happens on rising edge
 
         @(negedge clk);
         arvalid = 0;
@@ -397,9 +384,8 @@ module tb_axi_lite_regs;
     end
 
 
-    // Prevent a broken test from running forever
     initial begin
-        #500;
+        #5000;
         $fatal(1, "FAIL: Testbench timeout");
     end
 

@@ -34,7 +34,7 @@ module axi_lite_regs #(
 
 
   // Memory-mapped register byte offsets
-  localparam logic [ADDR_WIDTH-1:0] REG_DMA_CTRL   = 5'h00;  // Byte offset 0x00
+  localparam logic [ADDR_WIDTH-1:0] REG_DMA_CTRL   = 5'h00;  
   localparam logic [ADDR_WIDTH-1:0] REG_DMA_STATUS = 5'h04;
   localparam logic [ADDR_WIDTH-1:0] REG_SRC_ADDR = 5'h08;
   localparam logic [ADDR_WIDTH-1:0] REG_DST_ADDR = 5'h0C;
@@ -47,21 +47,18 @@ module axi_lite_regs #(
   logic [ADDR_WIDTH-1:0] dst_addr_reg;
   logic [DATA_WIDTH-1:0] length_reg;
 
-// Buffer AW and W independently because their handshakes
-// may occur in either order.
+// Buffer AW and W
 
-  // Buffered write address
   logic [ADDR_WIDTH-1:0] awaddr_reg;
   logic                  awaddr_received;
 
-  // Buffered write data and byte strobes
   logic [DATA_WIDTH-1:0]     wdata_reg;
   logic [(DATA_WIDTH/8)-1:0] wstrb_reg;
   logic                      wdata_received;
  
  
   // Only permit one outstanding write transaction
-  // Block new requests while BVALID is 1 (pending response)
+
   logic write;
   assign write = awaddr_received && wdata_received && !s_axi_bvalid;
   
@@ -117,7 +114,7 @@ module axi_lite_regs #(
       s_axi_bresp <= 2'b00;
     end
     else begin
-      if (s_axi_bready && s_axi_bvalid) begin // Complete the write response when accepted
+      if (s_axi_bready && s_axi_bvalid) begin 
         s_axi_bvalid <= 1'b0;
       end
 
